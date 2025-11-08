@@ -1,0 +1,23 @@
+{
+  "name": "midnight-address-registration",
+  "version": "1.0.0",
+  "description": "Standalone script to register Cardano wallet addresses with Midnight Scavenger API",
+  "type": "module",
+  "main": "register-addresses.js",
+  "scripts": {
+    "register": "node register-addresses.js",
+	"export": "node export-addresses.js"
+  },
+  "keywords": [
+    "midnight",
+    "cardano",
+    "wallet",
+    "registration"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "lucid-cardano": "^0.10.11"
+  }
+}

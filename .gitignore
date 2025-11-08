@@ -1,0 +1,23 @@
+# Security - Never commit files with seed phrases
+wallet-input.json
+registration-results.json
+wallets.txt
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Build files
+Windows.zip
+Windows/

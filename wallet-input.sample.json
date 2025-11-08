@@ -1,0 +1,19 @@
+{
+  "wallets": [
+    {
+      "name": "Wallet 1",
+      "seedPhrase": "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15",
+      "addressCount": 40
+    },
+    {
+      "name": "Wallet 2",
+      "seedPhrase": "another fifteen word seed phrase goes here in this exact format with spaces only",
+      "addressCount": 40
+    },
+    {
+      "name": "Wallet 3 (24 words)",
+      "seedPhrase": "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24",
+      "addressCount": 20
+    }
+  ]
+}
