@@ -2,6 +2,7 @@
 wallet-input.json
 registration-results.json
 wallets.txt
+wallet-tracker.csv
 
 # Dependencies
 node_modules/

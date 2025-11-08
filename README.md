@@ -99,7 +99,30 @@ Lệnh này sẽ:
 
 File `wallets.txt` có thể dùng để import vào các công cụ khác.
 
-### Bước 6: Xóa File Cấu Hình (Bảo Mật!)
+### Bước 6: Theo Dõi Challenge Submissions (Tùy Chọn)
+
+Sau khi đã có file `wallets.txt`, bạn có thể theo dõi số lượng challenge đã submit cho từng địa chỉ:
+
+```bash
+npm run track
+```
+
+Lệnh này sẽ:
+- Đọc danh sách địa chỉ từ `wallets.txt`
+- Lấy thông tin challenge hiện tại từ API
+- Lấy số lượng solution và night allocation cho từng địa chỉ
+- Lưu kết quả vào file `wallet-tracker.csv`
+- Nếu đã chạy trước đó, sẽ thêm cột mới cho ngày hiện tại
+
+**Output:** File `wallet-tracker.csv` chứa:
+- Mỗi dòng là một địa chỉ
+- Các cột: Day X Solution, Day X Night (X là số ngày)
+- Tổng Night allocation cho từng địa chỉ
+- Tổng Solution và Total Night ở cuối file
+
+**Lưu ý:** Script này có thể chạy mỗi ngày để tracking tiến trình. Dữ liệu cũ sẽ được giữ lại và merge với dữ liệu mới.
+
+### Bước 7: Xóa File Cấu Hình (Bảo Mật!)
 
 **QUAN TRỌNG:** Sau khi chạy xong, phải xóa file chứa seed phrase ngay lập tức!
 
@@ -123,10 +146,13 @@ scripts/
 ├── package.json                  # Cấu hình dependencies
 ├── register-addresses.js         # Script đăng ký chính
 ├── export-addresses.js           # Script xuất địa chỉ
+├── track-challenges.js           # Script theo dõi challenge submissions
 ├── wallet-input.sample.json      # File mẫu
 ├── wallet-input.json             # File cấu hình của bạn (tạo rồi xóa!)
 ├── registration-results.json     # Kết quả đăng ký
 ├── wallets.txt                   # Danh sách địa chỉ (sau khi export)
+├── wallet-tracker.csv            # Kết quả tracking (sau khi track)
+├── .gitignore                    # Bỏ qua các file nhạy cảm
 ├── README.md                     # File hướng dẫn này
 └── node_modules/                 # Thư viện (sau khi npm install)
 ```
@@ -135,6 +161,7 @@ scripts/
 
 ## 🎯 Tính Năng
 
+### Đăng Ký Địa Chỉ
 ✅ **Hoàn Toàn Độc Lập** - Không cần server Next.js!
 ✅ **Nhiều Ví** - Đăng ký không giới hạn số lượng ví trong 1 lần chạy
 ✅ **Hỗ Trợ 15 hoặc 24 Từ** - Cả 2 định dạng seed phrase
@@ -143,7 +170,12 @@ scripts/
 ✅ **Theo Dõi Tiến Trình** - Hiển thị real-time trên console
 ✅ **Xử Lý Lỗi** - Tiếp tục chạy ngay cả khi một số địa chỉ bị lỗi
 ✅ **Kết Quả Chi Tiết** - File JSON với đầy đủ thông tin
+
+### Quản Lý và Tracking
 ✅ **Xuất Danh Sách** - Export địa chỉ thành công ra file text
+✅ **Theo Dõi Challenge** - Track số lượng solution và night allocation theo ngày
+✅ **Lịch Sử Tracking** - Dữ liệu cũ được giữ lại khi track ngày mới
+✅ **Export CSV** - Dễ dàng import vào Excel/Google Sheets
 
 ---
 
@@ -232,13 +264,40 @@ addr1qz...
 
 Mỗi dòng là một địa chỉ, dễ dàng copy/paste hoặc import vào công cụ khác.
 
+### wallet-tracker.csv
+
+File này được tạo sau khi chạy lệnh track, chứa lịch sử challenge submissions theo ngày:
+
+```csv
+Wallet Address,Day 1 Solution,Day 1 Night,Day 2 Solution,Day 2 Night,Day 3 Solution,Day 3 Night,Total Night per address
+addr1qx...,5,125.5,5,125.5,4,100.4,351.4
+addr1qy...,5,125.5,5,125.5,5,125.5,376.5
+addr1qz...,4,100.4,5,125.5,5,125.5,351.4
+...
+Total Solution,200,5010,205,5135.5,198,4960.2,15105.7
+Total Night,200,5010,205,5135.5,198,4960.2,15105.7
+```
+
+**Giải thích:**
+- **Mỗi dòng**: Một địa chỉ wallet
+- **Day X Solution**: Số lượng challenge đã submit trong ngày X
+- **Day X Night**: Night allocation nhận được trong ngày X
+- **Total Night per address**: Tổng Night allocation của địa chỉ đó
+- **Total Solution**: Tổng số solution của tất cả địa chỉ theo từng cột
+- **Total Night**: Tổng Night allocation của tất cả địa chỉ theo từng cột
+
+File này có thể mở bằng Excel, Google Sheets, hoặc bất kỳ công cụ CSV nào.
+
 ---
 
 ## ⏱️ Hiệu Năng
 
 - **Tạo địa chỉ**: ~0.1 giây/địa chỉ
 - **Đăng ký**: ~1.5 giây/địa chỉ (có rate limit)
-- **Ví dụ**: 40 địa chỉ = khoảng 1-2 phút
+- **Tracking**: ~0.5 giây/địa chỉ (có rate limit)
+- **Ví dụ**:
+  - 40 địa chỉ đăng ký = khoảng 1-2 phút
+  - 40 địa chỉ tracking = khoảng 20-30 giây
 
 ---
 
@@ -423,6 +482,45 @@ $ npm run export
 💾 Đang xuất ra: wallets.txt
 ✅ Đã xuất thành công 40 địa chỉ
 
+$ npm run track
+
+═══════════════════════════════════════════════════════════════
+  Midnight Challenge Tracker
+  Track wallet challenge submissions
+═══════════════════════════════════════════════════════════════
+
+📖 Loaded 40 wallets
+
+🌐 Fetching current challenge day...
+🗓  Current challenge day: 5
+
+📂 Reading existing tracking data...
+✅ Found 8 existing day columns
+
+🚀 Fetching wallet statistics...
+
+   [1/40] addr1qx... -> Solution: 5 | Night: 125.5000
+   [2/40] addr1qy... -> Solution: 5 | Night: 125.5000
+   ...
+   [40/40] addr1qz... -> Solution: 4 | Night: 100.4000
+
+✅ Fetched all wallet statistics
+
+🔄 Merging data...
+💾 Generating CSV file...
+✅ Successfully saved to: wallet-tracker.csv
+
+═══════════════════════════════════════════════════════════════
+  📊 Tracking Summary
+═══════════════════════════════════════════════════════════════
+  Total wallets tracked:  40
+  Current day:            5
+  Total day columns:      5
+  Output file:            wallet-tracker.csv
+═══════════════════════════════════════════════════════════════
+
+🎉 Challenge tracking completed successfully!
+
 $ # Xóa file chứa seed phrase
 $ del wallet-input.json
 ```
@@ -440,6 +538,9 @@ npm run register
 
 # Xuất danh sách địa chỉ
 npm run export
+
+# Theo dõi challenge submissions (tùy chọn)
+npm run track
 
 # Dọn dẹp (QUAN TRỌNG!)
 # Cách 1: Dùng File Explorer
@@ -470,10 +571,13 @@ Thư mục `scripts/` này **hoàn toàn độc lập**:
 ## 💡 Mẹo Hay
 
 1. **Test với 1 địa chỉ trước**: Đặt `addressCount: 1` để thử nghiệm
-2. **Giữ lại file kết quả**: `registration-results.json` và `wallets.txt` an toàn để backup
+2. **Giữ lại file kết quả**: `registration-results.json`, `wallets.txt` và `wallet-tracker.csv` an toàn để backup
 3. **Luôn mở terminal đúng thư mục**: Phải ở trong thư mục `scripts`
 4. **Kiểm tra kết quả**: Xem file `registration-results.json` sau khi hoàn thành
 5. **Dùng file wallets.txt**: Tiện để import vào công cụ khác
+6. **Tracking định kỳ**: Chạy `npm run track` mỗi ngày để theo dõi tiến trình challenge
+7. **Mở CSV bằng Excel**: File `wallet-tracker.csv` có thể mở bằng Excel để xem báo cáo đẹp hơn
+8. **Lưu lịch sử**: File CSV sẽ tự động merge dữ liệu mới với dữ liệu cũ mỗi lần chạy
 
 ---
 
