@@ -48,7 +48,7 @@ Nếu bạn có nhiều seed phrase được tổ chức theo PC, bạn có th�
 
 1. Tạo file `seed.txt` trong thư mục scripts với cấu trúc sau:
    ```
-   Work-Chrome
+   Wallet-1
    1. word1
    2. word2
    3. word3
@@ -65,7 +65,7 @@ Nếu bạn có nhiều seed phrase được tổ chức theo PC, bạn có th�
    14. word14
    15. word15
    =====================
-   Work-FPT
+   Wallet-2
    1. word1
    2. word2
    3. word3
@@ -84,7 +84,7 @@ Nếu bạn có nhiều seed phrase được tổ chức theo PC, bạn có th�
 3. Script sẽ tự động tạo file `wallet-input.json` với:
    - Tự động kết hợp các từ thành cụm seed phrase hoàn chỉnh
    - Mặc định 10 địa chỉ cho mỗi seed phrase
-   - Tên ví sử dụng tên bạn đặt (ví dụ: "Work-Chrome", "Work-FPT")
+   - Tên ví sử dụng tên bạn đặt (ví dụ: "Wallet-1", "Wallet-2", "PC-21", v.v.)
    - Hỗ trợ 12, 15, 18, 21, hoặc 24 từ
    - Bỏ qua các dòng có `seed_x` (placeholder)
 
