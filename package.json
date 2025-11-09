@@ -8,7 +8,8 @@
     "convert": "node seed-to-wallet-converter.js",
     "register": "node register-addresses.js",
     "export": "node export-addresses.js",
-    "track": "node track-challenges.js"
+    "track": "node track-challenges.js",
+    "stats": "node statistics.js"
   },
   "keywords": [
     "midnight",

@@ -170,7 +170,34 @@ Lệnh này sẽ:
 
 **Lưu ý:** Script này có thể chạy mỗi ngày để tracking tiến trình. Dữ liệu cũ sẽ được giữ lại và merge với dữ liệu mới.
 
-### Bước 7: Xóa File Cấu Hình (Bảo Mật!)
+### Bước 7: Xem Thống Kê (Tùy Chọn)
+
+Sau khi đã có file `wallet-tracker.csv` từ bước tracking, bạn có thể xem thống kê chi tiết:
+
+```bash
+npm run stats
+```
+
+Lệnh này sẽ:
+- Đọc và phân tích file `wallet-tracker.csv`
+- Tính toán các thống kê toàn diện
+- Hiển thị báo cáo trên màn hình
+- Lưu báo cáo chi tiết vào file `statistics-report.txt`
+
+**Thống kê bao gồm:**
+- Tổng số ví và ví hoạt động
+- Top 10 ví có nhiều Night và Solution nhất
+- Trung bình Night và Solution trên mỗi ví
+- Phân bố Night allocation theo khoảng
+- Xu hướng theo từng ngày
+- Danh sách ví không hoạt động
+- Và nhiều thống kê khác...
+
+**Output:**
+- Hiển thị trên console
+- File `statistics-report.txt` chứa báo cáo chi tiết
+
+### Bước 8: Xóa File Cấu Hình (Bảo Mật!)
 
 **QUAN TRỌNG:** Sau khi chạy xong, phải xóa file chứa seed phrase ngay lập tức!
 
@@ -196,6 +223,7 @@ scripts/
 ├── register-addresses.js         # Script đăng ký chính
 ├── export-addresses.js           # Script xuất địa chỉ
 ├── track-challenges.js           # Script theo dõi challenge submissions
+├── statistics.js                 # Script thống kê từ wallet-tracker.csv
 ├── seed.txt.sample               # File mẫu cho seed.txt
 ├── seed.txt                      # File seed phrases của bạn (tạo rồi xóa!)
 ├── wallet-input.sample.json      # File mẫu
@@ -203,6 +231,7 @@ scripts/
 ├── registration-results.json     # Kết quả đăng ký
 ├── wallets.txt                   # Danh sách địa chỉ (sau khi export)
 ├── wallet-tracker.csv            # Kết quả tracking (sau khi track)
+├── statistics-report.txt         # Báo cáo thống kê (sau khi stats)
 ├── .gitignore                    # Bỏ qua các file nhạy cảm
 ├── README.md                     # File hướng dẫn này
 └── node_modules/                 # Thư viện (sau khi npm install)
@@ -227,6 +256,10 @@ scripts/
 ✅ **Theo Dõi Challenge** - Track số lượng solution và night allocation theo ngày
 ✅ **Lịch Sử Tracking** - Dữ liệu cũ được giữ lại khi track ngày mới
 ✅ **Export CSV** - Dễ dàng import vào Excel/Google Sheets
+✅ **Thống Kê Chi Tiết** - Phân tích toàn diện với top wallets, trung bình, phân bố
+✅ **Báo Cáo Tự Động** - Tạo báo cáo thống kê chi tiết và lưu file
+✅ **Xu Hướng Theo Ngày** - Theo dõi hiệu suất theo từng ngày
+✅ **Phát Hiện Ví Không Hoạt Động** - Dễ dàng tìm ví cần kiểm tra
 
 ---
 
@@ -595,6 +628,9 @@ npm run export
 
 # Theo dõi challenge submissions (tùy chọn)
 npm run track
+
+# Xem thống kê chi tiết (tùy chọn)
+npm run stats
 
 # Dọn dẹp (QUAN TRỌNG!)
 # Cách 1: Dùng File Explorer
