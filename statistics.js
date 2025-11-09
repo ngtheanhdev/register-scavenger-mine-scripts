@@ -107,12 +107,6 @@ function calculateStatistics(wallets, dayColumns) {
   const topWalletsBySolution = walletsBySolution.slice(0, 10);
   const bottomWalletsBySolution = walletsBySolution.slice(-10).reverse();
 
-  // Inactive wallets (0 solutions)
-  const inactiveWallets = wallets.filter(w => w.totalSolution === 0);
-
-  // Active wallets
-  const activeWallets = wallets.filter(w => w.totalSolution > 0);
-
   // Min/Max metrics
   const maxNight = walletsByNight[0]?.totalNight || 0;
   const minNight = walletsByNight[walletsByNight.length - 1]?.totalNight || 0;
@@ -140,28 +134,27 @@ function calculateStatistics(wallets, dayColumns) {
     };
   });
 
-  // Calculate consistency (wallets with solutions every day)
-  const consistentWallets = wallets.filter(w => {
-    return w.days.every(d => d.solution > 0);
-  });
-
   // Distribution of night allocation
   const nightRanges = {
-    '0': 0,
-    '1-500': 0,
-    '501-1000': 0,
-    '1001-2000': 0,
-    '2001-3000': 0,
-    '3000+': 0
+    '0-10': 0,
+    '10-50': 0,
+    '50-100': 0,
+    '100-200': 0,
+    '200-300': 0,
+    '300-400': 0,
+    '400-500': 0,
+    '500+': 0
   };
 
   wallets.forEach(w => {
-    if (w.totalNight === 0) nightRanges['0']++;
-    else if (w.totalNight <= 500) nightRanges['1-500']++;
-    else if (w.totalNight <= 1000) nightRanges['501-1000']++;
-    else if (w.totalNight <= 2000) nightRanges['1001-2000']++;
-    else if (w.totalNight <= 3000) nightRanges['2001-3000']++;
-    else nightRanges['3000+']++;
+    if (w.totalNight <= 10) nightRanges['0-10']++;
+    else if (w.totalNight <= 50) nightRanges['10-50']++;
+    else if (w.totalNight <= 100) nightRanges['50-100']++;
+    else if (w.totalNight <= 200) nightRanges['100-200']++;
+    else if (w.totalNight <= 300) nightRanges['200-300']++;
+    else if (w.totalNight <= 400) nightRanges['300-400']++;
+    else if (w.totalNight <= 500) nightRanges['400-500']++;
+    else nightRanges['500+']++;
   });
 
   return {
@@ -177,14 +170,11 @@ function calculateStatistics(wallets, dayColumns) {
     bottomWalletsByNight,
     topWalletsBySolution,
     bottomWalletsBySolution,
-    inactiveWallets,
-    activeWallets,
     maxNight,
     minNight,
     maxSolution,
     minSolution,
     dailyStats,
-    consistentWallets,
     nightRanges
   };
 }
@@ -193,7 +183,9 @@ function calculateStatistics(wallets, dayColumns) {
  * Format number with thousand separators
  */
 function formatNumber(num, decimals = 2) {
-  return num.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const parts = num.toFixed(decimals).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
 }
 
 /**
@@ -219,9 +211,6 @@ function generateReport(stats) {
   report += '📊 OVERVIEW\n';
   report += '─────────────────────────────────────────────────────────────\n';
   report += `  Total Wallets:              ${stats.totalWallets}\n`;
-  report += `  Active Wallets:             ${stats.activeWallets.length} (${((stats.activeWallets.length / stats.totalWallets) * 100).toFixed(1)}%)\n`;
-  report += `  Inactive Wallets:           ${stats.inactiveWallets.length} (${((stats.inactiveWallets.length / stats.totalWallets) * 100).toFixed(1)}%)\n`;
-  report += `  Consistent Wallets:         ${stats.consistentWallets.length} (submitted every day)\n`;
   report += `  Tracking Days:              ${stats.activeDays}\n`;
   report += '\n';
 
@@ -279,7 +268,7 @@ function generateReport(stats) {
   // Night Distribution
   report += '📊 NIGHT ALLOCATION DISTRIBUTION\n';
   report += '─────────────────────────────────────────────────────────────\n';
-  const ranges = ['0', '1-500', '501-1000', '1001-2000', '2001-3000', '3000+'];
+  const ranges = ['0-10', '10-50', '50-100', '100-200', '200-300', '300-400', '400-500', '500+'];
   ranges.forEach(range => {
     const count = stats.nightRanges[range];
     const percentage = ((count / stats.totalWallets) * 100).toFixed(1);
@@ -297,19 +286,6 @@ function generateReport(stats) {
     report += `  ${String(day.day).padStart(3)} | ${formatNumber(day.totalSolutions, 0).padStart(15)} | ${formatNumber(day.totalNights, 2).padStart(14)} | ${formatNumber(day.avgSolutionsPerWallet, 2).padStart(14)} | ${formatNumber(day.avgNightsPerWallet, 4).padStart(16)}\n`;
   });
   report += '\n';
-
-  // Inactive Wallets (show only count and first few)
-  if (stats.inactiveWallets.length > 0) {
-    report += `⚠️  INACTIVE WALLETS (${stats.inactiveWallets.length} total, showing first 10)\n`;
-    report += '─────────────────────────────────────────────────────────────\n';
-    stats.inactiveWallets.slice(0, 10).forEach((w, i) => {
-      report += `  ${String(i + 1).padStart(2)}. ${w.address}\n`;
-    });
-    if (stats.inactiveWallets.length > 10) {
-      report += `  ... and ${stats.inactiveWallets.length - 10} more\n`;
-    }
-    report += '\n';
-  }
 
   report += '═══════════════════════════════════════════════════════════════\n';
   report += '  End of Report\n';
@@ -364,7 +340,6 @@ async function main() {
     console.log('  📊 Statistics Summary');
     console.log('═══════════════════════════════════════════════════════════════');
     console.log(`  Total Wallets:          ${stats.totalWallets}`);
-    console.log(`  Active Wallets:         ${stats.activeWallets.length}`);
     console.log(`  Total Solutions:        ${formatNumber(stats.totalSolution, 0)}`);
     console.log(`  Total Night:            ${formatNumber(stats.totalNight, 4)}`);
     console.log(`  Avg Solutions/Wallet:   ${formatNumber(stats.avgSolutionPerWallet, 2)}`);
