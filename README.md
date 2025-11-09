@@ -42,6 +42,54 @@ Lệnh này sẽ cài đặt:
 
 ### Bước 3: Chuẩn Bị File Cấu Hình
 
+**Cách 1: Sử Dụng Script Chuyển Đổi (Khuyến Nghị cho Nhiều Ví)**
+
+Nếu bạn có nhiều seed phrase được tổ chức theo PC, bạn có thể sử dụng script chuyển đổi tự động:
+
+1. Tạo file `seed.txt` trong thư mục scripts với cấu trúc sau:
+   ```
+   Wallet-1
+   1. word1
+   2. word2
+   3. word3
+   4. word4
+   5. word5
+   6. word6
+   7. word7
+   8. word8
+   9. word9
+   10. word10
+   11. word11
+   12. word12
+   13. word13
+   14. word14
+   15. word15
+   =====================
+   Wallet-2
+   1. word1
+   2. word2
+   3. word3
+   ...
+   15. word15
+   =====================
+   ```
+
+   **Lưu ý:** Mỗi từ (word) của seed phrase trên một dòng riêng biệt
+
+2. Chạy script chuyển đổi:
+   ```bash
+   npm run convert
+   ```
+
+3. Script sẽ tự động tạo file `wallet-input.json` với:
+   - Tự động kết hợp các từ thành cụm seed phrase hoàn chỉnh
+   - Mặc định 10 địa chỉ cho mỗi seed phrase
+   - Tên ví sử dụng tên bạn đặt (ví dụ: "Wallet-1", "Wallet-2", "PC-21", v.v.)
+   - Hỗ trợ 12, 15, 18, 21, hoặc 24 từ
+   - Bỏ qua các dòng có `seed_x` (placeholder)
+
+**Cách 2: Tạo File Thủ Công**
+
 1. Mở thư mục `scripts`, bạn sẽ thấy file `wallet-input.sample.json`
 2. **Tạo bản sao** của file này và đặt tên là `wallet-input.json`:
    - Click chuột phải vào file `wallet-input.sample.json`
@@ -144,9 +192,12 @@ del wallet-input.json
 ```
 scripts/
 ├── package.json                  # Cấu hình dependencies
+├── seed-to-wallet-converter.js   # Script chuyển đổi seed.txt -> wallet-input.json
 ├── register-addresses.js         # Script đăng ký chính
 ├── export-addresses.js           # Script xuất địa chỉ
 ├── track-challenges.js           # Script theo dõi challenge submissions
+├── seed.txt.sample               # File mẫu cho seed.txt
+├── seed.txt                      # File seed phrases của bạn (tạo rồi xóa!)
 ├── wallet-input.sample.json      # File mẫu
 ├── wallet-input.json             # File cấu hình của bạn (tạo rồi xóa!)
 ├── registration-results.json     # Kết quả đăng ký
@@ -533,6 +584,9 @@ $ del wallet-input.json
 # Cài đặt lần đầu
 npm install
 
+# Chuyển đổi seed.txt thành wallet-input.json (tùy chọn)
+npm run convert
+
 # Chạy đăng ký
 npm run register
 
@@ -545,11 +599,11 @@ npm run track
 # Dọn dẹp (QUAN TRỌNG!)
 # Cách 1: Dùng File Explorer
 # - Mở thư mục scripts
-# - Tìm file wallet-input.json
+# - Tìm file seed.txt và wallet-input.json
 # - Click chuột phải > Delete
 
 # Cách 2: Dùng lệnh
-del wallet-input.json
+del seed.txt wallet-input.json
 ```
 
 ---
