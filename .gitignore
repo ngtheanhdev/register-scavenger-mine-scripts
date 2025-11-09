@@ -1,4 +1,5 @@
 # Security - Never commit files with seed phrases
+seed.txt
 wallet-input.json
 registration-results.json
 wallets.txt
