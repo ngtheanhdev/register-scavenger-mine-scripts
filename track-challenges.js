@@ -135,61 +135,21 @@ function readExistingData() {
  * Generate CSV content from data
  */
 function generateCSV(wallets, allColumns, data) {
-  const headers = ['Wallet Address', ...allColumns, 'Total Night per address'];
+  const headers = ['Wallet Address', ...allColumns];
   const csvLines = [headers.join(',')];
 
   // Wallet rows
-  const totals = new Array(allColumns.length).fill(0);
-
   for (const wallet of wallets) {
     const row = [wallet];
-    let nightSum = 0;
 
     for (let i = 0; i < allColumns.length; i++) {
       const col = allColumns[i];
       const value = data[wallet]?.[col] || 0;
       row.push(value);
-      totals[i] += value;
-
-      // Sum night allocations for this wallet
-      if (col.includes('Night')) {
-        nightSum += value;
-      }
     }
 
-    row.push(nightSum.toFixed(4));
     csvLines.push(row.join(','));
   }
-
-  // Total Solution row
-  const totalSolutionRow = ['Total Solution'];
-  let grandSolution = 0;
-
-  for (let i = 0; i < allColumns.length; i++) {
-    const col = allColumns[i];
-    totalSolutionRow.push(totals[i]);
-
-    if (col.includes('Solution')) {
-      grandSolution += totals[i];
-    }
-  }
-  totalSolutionRow.push(grandSolution);
-  csvLines.push(totalSolutionRow.join(','));
-
-  // Total Night row
-  const totalNightRow = ['Total Night'];
-  let grandNight = 0;
-
-  for (let i = 0; i < allColumns.length; i++) {
-    const col = allColumns[i];
-    totalNightRow.push(totals[i]);
-
-    if (col.includes('Night')) {
-      grandNight += totals[i];
-    }
-  }
-  totalNightRow.push(grandNight.toFixed(4));
-  csvLines.push(totalNightRow.join(','));
 
   return csvLines.join('\n');
 }

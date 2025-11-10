@@ -48,14 +48,14 @@ function parseCSV(content) {
     }
   }
 
-  // Parse wallet data (skip header and last 2 rows which are totals)
+  // Parse wallet data (no more total rows at the end)
   const wallets = [];
-  for (let i = 1; i < lines.length - 2; i++) {
+  for (let i = 1; i < lines.length; i++) {
     const cells = lines[i].split(',');
 
     const wallet = {
       address: cells[0],
-      totalNight: parseFloat(cells[cells.length - 1]) || 0,
+      totalNight: 0, // Will be set to the latest day's night snapshot
       totalSolution: 0,
       days: []
     };
@@ -72,6 +72,11 @@ function parseCSV(content) {
       });
 
       wallet.totalSolution += solution;
+    }
+
+    // Set totalNight to the latest day's snapshot (last day in the list)
+    if (wallet.days.length > 0) {
+      wallet.totalNight = wallet.days[wallet.days.length - 1].night;
     }
 
     wallets.push(wallet);
@@ -92,10 +97,9 @@ function calculateStatistics(wallets, dayColumns) {
   const totalSolution = wallets.reduce((sum, w) => sum + w.totalSolution, 0);
 
   // Average metrics
-  const avgNightPerWallet = totalNight / totalWallets;
+  const avgNightPerWallet = totalNight / totalWallets; // Average of latest snapshot
   const avgSolutionPerWallet = totalSolution / totalWallets;
   const avgSolutionPerDay = totalSolution / activeDays;
-  const avgNightPerDay = totalNight / activeDays;
 
   // Sort wallets by night
   const walletsByNight = [...wallets].sort((a, b) => b.totalNight - a.totalNight);
@@ -113,8 +117,8 @@ function calculateStatistics(wallets, dayColumns) {
   const maxSolution = walletsBySolution[0]?.totalSolution || 0;
   const minSolution = walletsBySolution[walletsBySolution.length - 1]?.totalSolution || 0;
 
-  // Calculate daily trends
-  const dailyStats = dayColumns.map(dayCol => {
+  // Calculate daily trends with growth metrics
+  const dailyStats = dayColumns.map((dayCol, index) => {
     const daySolutions = wallets.reduce((sum, w) => {
       const dayData = w.days.find(d => d.day === dayCol.day);
       return sum + (dayData?.solution || 0);
@@ -125,12 +129,24 @@ function calculateStatistics(wallets, dayColumns) {
       return sum + (dayData?.night || 0);
     }, 0);
 
+    // Calculate growth from previous day
+    let nightGrowth = 0;
+    let solutionGrowth = 0;
+
+    if (index > 0) {
+      const prevDayStats = dailyStats[index - 1];
+      nightGrowth = dayNights - prevDayStats.nightSnapshot;
+      solutionGrowth = daySolutions - prevDayStats.totalSolutions;
+    }
+
     return {
       day: dayCol.day,
       totalSolutions: daySolutions,
-      totalNights: dayNights,
+      nightSnapshot: dayNights, // This is a snapshot, not a daily total
       avgSolutionsPerWallet: daySolutions / totalWallets,
-      avgNightsPerWallet: dayNights / totalWallets
+      avgNightSnapshotPerWallet: dayNights / totalWallets,
+      solutionGrowth: solutionGrowth,
+      nightGrowth: nightGrowth
     };
   });
 
@@ -165,7 +181,6 @@ function calculateStatistics(wallets, dayColumns) {
     avgNightPerWallet,
     avgSolutionPerWallet,
     avgSolutionPerDay,
-    avgNightPerDay,
     topWalletsByNight,
     bottomWalletsByNight,
     topWalletsBySolution,
@@ -218,16 +233,15 @@ function generateReport(stats) {
   report += '🎯 TOTAL METRICS\n';
   report += '─────────────────────────────────────────────────────────────\n';
   report += `  Total Solutions:            ${formatNumber(stats.totalSolution, 0)}\n`;
-  report += `  Total Night Allocation:     ${formatNumber(stats.totalNight, 4)}\n`;
+  report += `  Total Night Allocation:     ${formatNumber(stats.totalNight, 4)} (latest snapshot)\n`;
   report += '\n';
 
   // Average Metrics
   report += '📈 AVERAGE METRICS\n';
   report += '─────────────────────────────────────────────────────────────\n';
   report += `  Avg Solutions per Wallet:   ${formatNumber(stats.avgSolutionPerWallet, 2)}\n`;
-  report += `  Avg Night per Wallet:       ${formatNumber(stats.avgNightPerWallet, 4)}\n`;
+  report += `  Avg Night per Wallet:       ${formatNumber(stats.avgNightPerWallet, 4)} (from latest snapshot)\n`;
   report += `  Avg Solutions per Day:      ${formatNumber(stats.avgSolutionPerDay, 2)}\n`;
-  report += `  Avg Night per Day:          ${formatNumber(stats.avgNightPerDay, 4)}\n`;
   report += '\n';
 
   // Min/Max Metrics
@@ -279,11 +293,14 @@ function generateReport(stats) {
 
   // Daily Trends
   report += '📅 DAILY TRENDS\n';
-  report += '─────────────────────────────────────────────────────────────\n';
-  report += '  Day | Total Solutions | Total Night    | Avg Sol/Wallet | Avg Night/Wallet\n';
-  report += '  ────┼─────────────────┼────────────────┼────────────────┼──────────────────\n';
+  report += '─────────────────────────────────────────────────────────────────────────────────────────────────\n';
+  report += '  Day | Total Solutions | Night Snapshot | Sol Growth | Night Growth | Avg Sol/Wallet | Avg Night/Wallet\n';
+  report += '  ────┼─────────────────┼────────────────┼────────────┼──────────────┼────────────────┼──────────────────\n';
   stats.dailyStats.forEach(day => {
-    report += `  ${String(day.day).padStart(3)} | ${formatNumber(day.totalSolutions, 0).padStart(15)} | ${formatNumber(day.totalNights, 2).padStart(14)} | ${formatNumber(day.avgSolutionsPerWallet, 2).padStart(14)} | ${formatNumber(day.avgNightsPerWallet, 4).padStart(16)}\n`;
+    const solGrowth = day.solutionGrowth === 0 && day.day === stats.dailyStats[0].day ? '-' : formatNumber(day.solutionGrowth, 0);
+    const nightGrowth = day.nightGrowth === 0 && day.day === stats.dailyStats[0].day ? '-' : formatNumber(day.nightGrowth, 4);
+
+    report += `  ${String(day.day).padStart(3)} | ${formatNumber(day.totalSolutions, 0).padStart(15)} | ${formatNumber(day.nightSnapshot, 2).padStart(14)} | ${String(solGrowth).padStart(10)} | ${String(nightGrowth).padStart(12)} | ${formatNumber(day.avgSolutionsPerWallet, 2).padStart(14)} | ${formatNumber(day.avgNightSnapshotPerWallet, 4).padStart(16)}\n`;
   });
   report += '\n';
 
