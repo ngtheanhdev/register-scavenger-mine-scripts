@@ -6,12 +6,12 @@ Các script bổ trợ cho phase Scavenger Mine của Midnight dựa trên các 
 
 ### Node.js
 - **Phiên bản**: Node.js 20.x trở lên
-- **Tải về**: https://nodejs.org/
 
 **Kiểm tra phiên bản Node.js đã cài:**
 ```bash
 node --version
 ```
+- Nếu lệnh trên hiển thị phiên bản Nodejs thì máy bạn đã có. Nếu không, bạn có thể tải về tại: https://nodejs.org/
 
 ### Git (Tùy chọn)
 **Kiểm tra xem máy có Git chưa:**
@@ -19,7 +19,7 @@ node --version
 git --version
 ```
 
-Nếu lệnh trên hiển thị phiên bản Git thì máy bạn đã có Git. Nếu không, bạn có thể tải repository dưới dạng file ZIP.
+Nếu lệnh trên hiển thị phiên bản Git thì máy bạn đã có Git. Nếu không, bạn có thể tải repository này dưới dạng file ZIP.
 
 ## Cài Đặt
 
@@ -32,44 +32,51 @@ cd register-scavenger-mine-scripts
 ```
 
 **Cách 2: Tải file ZIP (cho máy không có Git)**
-1. Truy cập: https://github.com/ngtheanhdev/register-scavenger-mine-scripts
-2. Click vào nút màu xanh "Code"
+1. Click vào nút màu xanh "Code" ở phía trên đầu
 3. Chọn "Download ZIP"
 4. Sau khi tải về, giải nén (unzip) file ZIP
 5. Mở thư mục đã giải nén
 
 ### Bước 2: Cài Đặt Dependencies
 
-Mở terminal/command prompt tại thư mục dự án và chạy:
+Mở terminal/command prompt tại thư mục vừa tải (giải nén) và chạy:
 
 ```bash
 npm install
 ```
 
-## Các Lệnh Nhanh
+## Mô tả nhanh các lệnh có trong repository này
 
 ```bash
-# Chuyển đổi seed.txt thành wallet-input.json
+# Chuyển đổi file seed.txt thành file wallet-input.json
 npm run convert
 
 # Đăng ký địa chỉ ví với Midnight API
+# Scrip sẽ tạo ra file registration-results.json
+# Yêu cầu cần có file wallet-input.json trước khi chạy
 npm run register
 
 # Xuất danh sách địa chỉ đã đăng ký thành công
+# Scrip sẽ tạo ra file wallets.txt
+# Yêu cầu cần có file registration-results.json trước khi chạy
 npm run export
 
-# Theo dõi số lượng challenge submissions
+# Theo dõi số lượng challenge submissions theo address
+# Scrip sẽ tạo ra file wallet-tracker.csv
+# Yêu cầu cần có file wallets.txt trước khi chạy
 npm run track
 
-# Xem thống kê chi tiết từ dữ liệu tracking
+# Xem thống kê chi tiết từ dữ liệu tracking từ file 
+# Scrip sẽ in ra màn hình kết quả và tạo ra file statistics-report.txt để xem
+# Yêu cầu cần có file wallet-tracker.csv trước khi chạy
 npm run stats
 ```
 
-## Mô Tả Chi Tiết Các Script
+## Mô Tả Chi Tiết Từng Script
 
 ### 1. `npm run convert` - Chuyển Đổi Seed Phrases
 
-**Công dụng**: Chuyển đổi file `seed.txt` (định dạng có số thứ tự) thành file `wallet-input.json` để sử dụng cho script đăng ký.
+**Công dụng**: Chuyển đổi file `seed.txt` (định dạng như bên dưới) thành file `wallet-input.json` để sử dụng cho script đăng ký. Vì seed phrase copy từ ví Yoroi ra có định dạng như bên dưới và khó sử dụng nếu muốn copy vào file `wallet-input.json` nên script này giúp giải quyết việc đó. Nếu seed phrase của bạn có dạng `word1 word2 word3 ... word24` thì có thể bỏ qua script này
 
 **File cần có**: `seed.txt`
 
@@ -88,11 +95,18 @@ Wallet-2
 ...
 15. word15
 =====================
+...
+=====================
+Wallet-10
+1. word1
+2. word2
+...
+24. word24
 ```
 
-**Hướng dẫn tạo file**:
-1. Tìm file `seed.txt.sample` trong thư mục
-2. Tạo bản sao và đổi tên thành `seed.txt`
+**File seed.txt tham khảo**:
+1. File `seed.txt.sample` trong thư mục có thể sử dụng để tham khảo
+2. Nếu bạn muốn dùng hãy tạo bản coppy và đổi tên thành `seed.txt`
 3. Mở file và điền các seed phrase theo định dạng mẫu
 4. Lưu file
 
@@ -100,30 +114,20 @@ Wallet-2
 
 **Lưu ý**:
 - Script này là **tùy chọn**. Nếu bạn muốn tạo `wallet-input.json` thủ công (xem script số 2), có thể bỏ qua script này.
-- Hỗ trợ 12, 15, 18, 21, hoặc 24 từ
+- Hỗ trợ 15 hoặc 24 từ
 - Tên ví sẽ giữ nguyên như bạn đặt trong file (ví dụ: "Wallet-1", "PC-21", v.v.)
-- Mặc định tạo 10 địa chỉ cho mỗi seed phrase
+- Mặc định addressCount là 10 cho mỗi seed phrase (addressCount là gì xem script sau)
 - **Nhớ xóa file `seed.txt` sau khi chuyển đổi xong** để bảo mật
 
 ---
 
 ### 2. `npm run register` - Đăng Ký Địa Chỉ
 
-**Công dụng**: Tạo địa chỉ ví từ seed phrase và đăng ký với Midnight Scavenger API.
+**Công dụng**: Tạo số địa chỉ ví tương ứng với seed phrase và đăng ký chúng với Midnight Scavenger API.
 
 **File cần có**: `wallet-input.json`
 
 **Định dạng file wallet-input.json**:
-
-*Một ví đơn:*
-```json
-{
-  "seedPhrase": "cụm từ khôi phục 15 hoặc 24 từ của bạn",
-  "addressCount": 40
-}
-```
-
-*Nhiều ví:*
 ```json
 {
   "wallets": [
@@ -141,11 +145,16 @@ Wallet-2
 }
 ```
 
-**Hướng dẫn tạo file**:
+**Ý nghĩa các trường trong file**:
+- name : tùy chọn, để gì cũng được mục đích là cho dễ phân biệt và dễ nhớ
+- seedPhrase : seedphrase để tạo ra các địa chỉ ví
+- addressCount: số địa chỉ tạo ra từ seed phrase tương ứng
 
+**Hướng dẫn tạo file**:
 *Cách 1: Dùng script convert (xem script số 1)*
 - Tạo file `seed.txt` và chạy `npm run convert`
 - File `wallet-input.json` sẽ được tạo tự động
+- File này sẽ có số address được tạo từ mỗi seed phrase là 10
 
 *Cách 2: Tạo thủ công*
 1. Tìm file `wallet-input.sample.json` trong thư mục
@@ -156,8 +165,8 @@ Wallet-2
 **File kết quả**: `registration-results.json`
 
 **Lưu ý**:
-- Đây là script **bắt buộc** nếu bạn muốn đăng ký địa chỉ với Midnight
-- **Nhớ xóa file `wallet-input.json` ngay sau khi chạy xong** vì chứa seed phrase dạng text
+- Đây là script giúp bạn đăng ký địa chỉ với Midnight theo số lượng lớn
+- **Nhớ xóa file `wallet-input.json` ngay sau khi chạy xong** vì file đó chứa seed phrase dạng text
 
 ---
 
@@ -180,7 +189,7 @@ Wallet-2
 
 **Công dụng**: Theo dõi số lượng challenge đã submit và night allocation cho từng địa chỉ theo ngày.
 
-**File cần có**: `wallets.txt` (được tạo từ script số 3)
+**File cần có**: `wallets.txt` (được tạo từ script số 3, hoặc tự chuẩn bị tùy thích)
 
 **File kết quả**: `wallet-tracker.csv`
 
@@ -195,10 +204,9 @@ Total Night,200,5010,205,5135.5,10145.5
 ```
 
 **Lưu ý**:
-- Chỉ chạy script này **sau khi đã chạy `npm run export` thành công**
 - Script này là **tùy chọn** - chỉ cần nếu bạn muốn theo dõi tiến độ challenge
 - Có thể chạy nhiều lần (mỗi ngày) - dữ liệu cũ sẽ được giữ lại và merge với dữ liệu mới
-- File CSV có thể mở bằng Excel hoặc Google Sheets
+- File `wallets.txt` có thể chứa địa chỉ nào cũng được không cần bắt buộc là address của các script chạy trước đó
 
 ---
 
@@ -213,12 +221,11 @@ Total Night,200,5010,205,5135.5,10145.5
 - `statistics-report.txt` (báo cáo chi tiết)
 
 **Thống kê bao gồm**:
-- Tổng số ví và ví hoạt động
-- Top 10 ví có nhiều Night và Solution nhất
+- Tổng số ví
+- Top 10 ví có nhiều/ít Night và Solution nhất
 - Trung bình Night và Solution trên mỗi ví
 - Phân bố Night allocation theo khoảng
 - Xu hướng theo từng ngày
-- Danh sách ví không hoạt động
 
 **Lưu ý**:
 - Chỉ chạy script này **sau khi đã chạy `npm run track` thành công**
