@@ -118,7 +118,8 @@ function calculateStatistics(wallets, dayColumns) {
   const minSolution = walletsBySolution[walletsBySolution.length - 1]?.totalSolution || 0;
 
   // Calculate daily trends with growth metrics
-  const dailyStats = dayColumns.map((dayCol, index) => {
+  // First pass: Calculate basic stats for each day
+  const dailyStats = dayColumns.map((dayCol) => {
     const daySolutions = wallets.reduce((sum, w) => {
       const dayData = w.days.find(d => d.day === dayCol.day);
       return sum + (dayData?.solution || 0);
@@ -129,26 +130,25 @@ function calculateStatistics(wallets, dayColumns) {
       return sum + (dayData?.night || 0);
     }, 0);
 
-    // Calculate growth from previous day
-    let nightGrowth = 0;
-    let solutionGrowth = 0;
-
-    if (index > 0) {
-      const prevDayStats = dailyStats[index - 1];
-      nightGrowth = dayNights - prevDayStats.nightSnapshot;
-      solutionGrowth = daySolutions - prevDayStats.totalSolutions;
-    }
-
     return {
       day: dayCol.day,
       totalSolutions: daySolutions,
       nightSnapshot: dayNights, // This is a snapshot, not a daily total
       avgSolutionsPerWallet: daySolutions / totalWallets,
       avgNightSnapshotPerWallet: dayNights / totalWallets,
-      solutionGrowth: solutionGrowth,
-      nightGrowth: nightGrowth
+      solutionGrowth: 0,
+      nightGrowth: 0
     };
   });
+
+  // Second pass: Calculate growth metrics
+  for (let i = 1; i < dailyStats.length; i++) {
+    const prevDay = dailyStats[i - 1];
+    const currentDay = dailyStats[i];
+
+    currentDay.nightGrowth = currentDay.nightSnapshot - prevDay.nightSnapshot;
+    currentDay.solutionGrowth = currentDay.totalSolutions - prevDay.totalSolutions;
+  }
 
   // Distribution of night allocation
   const nightRanges = {
