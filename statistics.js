@@ -353,16 +353,6 @@ async function main() {
     fs.writeFileSync(STATS_OUTPUT_FILE, report, 'utf8');
     console.log(`✅ Report saved successfully\n`);
 
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('  📊 Statistics Summary');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log(`  Total Wallets:          ${stats.totalWallets}`);
-    console.log(`  Total Solutions:        ${formatNumber(stats.totalSolution, 0)}`);
-    console.log(`  Total Night:            ${formatNumber(stats.totalNight, 4)}`);
-    console.log(`  Avg Solutions/Wallet:   ${formatNumber(stats.avgSolutionPerWallet, 2)}`);
-    console.log(`  Avg Night/Wallet:       ${formatNumber(stats.avgNightPerWallet, 4)}`);
-    console.log('═══════════════════════════════════════════════════════════════\n');
-
     process.exit(0);
 
   } catch (error) {
