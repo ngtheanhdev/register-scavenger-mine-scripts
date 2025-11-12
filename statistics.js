@@ -56,7 +56,7 @@ function parseCSV(content) {
     const wallet = {
       address: cells[0],
       totalNight: 0, // Will be set to the latest day's night snapshot
-      totalSolution: 0,
+      totalSolution: 0, // Will be set to the latest day's solution snapshot
       days: []
     };
 
@@ -70,8 +70,11 @@ function parseCSV(content) {
         solution,
         night
       });
+    }
 
-      wallet.totalSolution += solution;
+    // Set totalSolution to the latest day's snapshot (last day in the list)
+    if (wallet.days.length > 0) {
+      wallet.totalSolution = wallet.days[wallet.days.length - 1].solution;
     }
 
     // Set totalNight to the latest day's snapshot (last day in the list)
