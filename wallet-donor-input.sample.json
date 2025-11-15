@@ -1,0 +1,14 @@
+{
+  "donors": [
+    {
+      "name": "Wallet 1",
+      "seedPhrase": "your 15 or 24 word seed phrase here for first wallet",
+      "addressCount": 40
+    },
+    {
+      "name": "Wallet 2",
+      "seedPhrase": "your 15 or 24 word seed phrase here for second wallet",
+      "addressCount": 20
+    }
+  ]
+}

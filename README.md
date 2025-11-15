@@ -66,10 +66,15 @@ npm run export
 # Yêu cầu cần có file wallets.txt trước khi chạy
 npm run track
 
-# Xem thống kê chi tiết từ dữ liệu tracking từ file 
+# Xem thống kê chi tiết từ dữ liệu tracking từ file
 # Scrip sẽ in ra màn hình kết quả và tạo ra file statistics-report.txt để xem
 # Yêu cầu cần có file wallet-tracker.csv trước khi chạy
 npm run stats
+
+# Hợp nhất (consolidate) allocation từ nhiều địa chỉ donor về một địa chỉ recipient
+# Script sẽ tạo ra file donation-signatures.json và consolidation-results.json
+# Yêu cầu cần có file wallet-donor-input.json và địa chỉ recipient
+npm run donate <địa_chỉ_recipient>
 ```
 
 ## Mô Tả Chi Tiết Từng Script
@@ -109,6 +114,8 @@ Wallet-10
 2. Nếu bạn muốn dùng hãy tạo bản coppy và đổi tên thành `seed.txt`
 3. Mở file và điền các seed phrase theo định dạng mẫu
 4. Lưu file
+
+**Sau khi 
 
 **File kết quả**: `wallet-input.json`
 
@@ -233,6 +240,82 @@ Total Night,200,5010,205,5135.5,10145.5
 
 ---
 
+### 6. `npm run donate <địa_chỉ_recipient>` - Hợp Nhất Allocation
+
+**Công dụng**: Hợp nhất (consolidate) Scavenger Mine allocation từ nhiều địa chỉ donor về một địa chỉ recipient duy nhất. Điều này giúp bạn quản lý NIGHT dễ dàng hơn từ một ví duy nhất thay vì phải quản lý nhiều ví khác nhau.
+
+**File cần có**: `wallet-donor-input.json`
+
+**Định dạng file wallet-donor-input.json**:
+```json
+{
+  "donors": [
+    {
+      "name": "Ví Donor 1",
+      "seedPhrase": "từ1 từ2 từ3 ... từ15",
+      "addressCount": 40
+    },
+    {
+      "name": "Ví Donor 2",
+      "seedPhrase": "từ1 từ2 ... từ24",
+      "addressCount": 20
+    }
+  ]
+}
+```
+
+**Ý nghĩa các trường trong file**:
+- `name`: Tùy chọn, tên ví để dễ phân biệt
+- `seedPhrase`: Seed phrase của ví donor (ví muốn chuyển allocation đi)
+- `addressCount`: Số địa chỉ đã được tạo từ seed phrase đó (ví dụ seed đó tạo ra 100 ví đăng ký với midnight thì điền 100, điền lớn hơn số ví thực tế cũng không sao)
+
+**Hướng dẫn tạo file**:
+1. Tìm file `wallet-donor-input.sample.json` trong thư mục
+2. Tạo bản sao và đổi tên thành `wallet-donor-input.json`
+3. Mở file và điền seed phrase của các ví donor theo định dạng trên
+4. Lưu file
+
+**Cách sử dụng**:
+```bash
+# Ví dụ: Chuyển allocation về địa chỉ recipient
+npm run donate addr1q8mamwlayr45guejvmzqt80yqhmaudy373rsv6jeeplnpnvkdh5pjv...
+```
+
+**Quy trình 2 giai đoạn**:
+
+**Giai đoạn 1 - Tạo chữ ký** (an toàn, có thể tái sử dụng):
+- Script tạo các địa chỉ donor từ seed phrase (index 0 đến addressCount-1)
+- Ký message donation cho mỗi địa chỉ
+- Lưu vào file `donation-signatures.json`
+- **Không gọi API** - hoàn toàn an toàn
+
+**Giai đoạn 2 - Thực thi donation** (có thể chạy lại nếu lỗi):
+- Đọc file `donation-signatures.json`
+- Gọi API `/donate_to` cho từng địa chỉ donor
+- Cập nhật trạng thái sau mỗi lần gọi API
+- Áp dụng rate limiting 1.5 giây giữa các lần gọi
+
+**File kết quả**:
+- `donation-signatures.json` - File chữ ký trung gian (có thể xem và kiểm tra)
+- `consolidation-results.json` - Kết quả cuối cùng
+
+**Lưu ý**:
+- Script này **tùy chọn** - chỉ cần nếu bạn muốn hợp nhất allocation từ nhiều ví
+- Địa chỉ recipient phải là địa chỉ Cardano hợp lệ (bắt đầu bằng `addr1`)
+- Tất cả các địa chỉ donor phải đã được đăng ký trước đó
+- **Xóa file `wallet-donor-input.json` ngay sau khi chạy xong** vì chứa seed phrase
+- File `donation-signatures.json` có thể giữ lại để xem lại hoặc chạy lại nếu bị lỗi
+- Nếu gặp lỗi trong quá trình donation, có thể chạy lại lệnh với cùng địa chỉ recipient - script sẽ tự động bỏ qua các địa chỉ đã donate thành công
+- Response "already assigned" được xem là thành công
+
+**Lợi ích khi consolidate**:
+- Quản lý NIGHT từ một ví duy nhất thay vì nhiều ví
+- Giảm phí transaction khi redeem
+- Giảm yêu cầu minimum ADA
+- Tiện lợi hơn khi tương tác với Glacier Drop portal
+
+---
+
 ## Các File Trong Thư Mục
 
 ```
@@ -242,17 +325,22 @@ register-scavenger-mine-scripts/
 ├── seed-to-wallet-converter.js   # Script chuyển đổi seed.txt -> wallet-input.json
 ├── register-addresses.js         # Script đăng ký địa chỉ với API
 ├── export-addresses.js           # Script xuất danh sách địa chỉ
+├── consolidate-addresses.js      # Script hợp nhất allocation
 ├── track-challenges.js           # Script theo dõi challenge submissions
 ├── statistics.js                 # Script thống kê từ wallet-tracker.csv
 ├── seed.txt.sample               # File mẫu cho seed.txt
 ├── wallet-input.sample.json      # File mẫu cho wallet-input.json
+├── wallet-donor-input.sample.json # File mẫu cho wallet-donor-input.json
 ├── .gitignore                    # Danh sách file bỏ qua khi commit
 └── README.md                     # File hướng dẫn này
 
 File được tạo ra sau khi chạy scripts:
 ├── seed.txt                      # File seed phrases (TẠO RỒI XÓA!)
 ├── wallet-input.json             # File cấu hình ví (TẠO RỒI XÓA!)
+├── wallet-donor-input.json       # File cấu hình ví donor (TẠO RỒI XÓA!)
 ├── registration-results.json     # Kết quả đăng ký (an toàn để lưu)
+├── donation-signatures.json      # Chữ ký donation (nên xóa sau khi xong)
+├── consolidation-results.json    # Kết quả hợp nhất (an toàn để lưu)
 ├── wallets.txt                   # Danh sách địa chỉ (an toàn để lưu)
 ├── wallet-tracker.csv            # Kết quả tracking (an toàn để lưu)
 └── statistics-report.txt         # Báo cáo thống kê (an toàn để lưu)
@@ -263,7 +351,8 @@ File được tạo ra sau khi chạy scripts:
 ## Lưu Ý Bảo Mật
 
 ⚠️ **QUAN TRỌNG**:
-- File `seed.txt` và `wallet-input.json` chứa seed phrase dạng text thuần
+- File `seed.txt`, `wallet-input.json` và `wallet-donor-input.json` chứa seed phrase dạng text thuần
 - **Phải xóa ngay** sau khi sử dụng xong
 - **Không bao giờ** commit lên git hoặc chia sẻ với người khác
-- Các file kết quả khác (`registration-results.json`, `wallets.txt`, `wallet-tracker.csv`) chỉ chứa địa chỉ công khai, an toàn để lưu trữ
+- File `donation-signatures.json` chứa chữ ký - nên xóa sau khi consolidate xong hoặc không cần chạy lại
+- Các file kết quả khác (`registration-results.json`, `consolidation-results.json`, `wallets.txt`, `wallet-tracker.csv`) chỉ chứa địa chỉ công khai và thông tin không nhạy cảm, an toàn để lưu trữ

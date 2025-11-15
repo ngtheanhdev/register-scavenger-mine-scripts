@@ -1,7 +1,10 @@
 # Security - Never commit files with seed phrases
 seed.txt
 wallet-input.json
+wallet-donor-input.json
 registration-results.json
+donation-signatures.json
+consolidation-results.json
 wallets.txt
 wallet-tracker.csv
 statistics-report.txt
